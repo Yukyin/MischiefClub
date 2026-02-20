@@ -1,9 +1,9 @@
 # MischiefClub 👻  
-*A cathartic, role-based venting interface with reality-blocking guardrails.*
+A cathartic, role-based venting interface with reality-blocking guardrails.
 
 ![Overview](overview.png)
 
-> MischiefClub 👻 is a [[DeepSupport]](https://github.com/Yukyin/DeepSupport) spinoff. It keeps LLM safety boundaries intact, delivers strong emotional support, and converts risky utterances into humorous role‑play instead of unsafe escalation. 👹🎭
+MischiefClub 👻 is a [DeepSupport](https://github.com/Yukyin/DeepSupport) spinoff. It keeps LLM safety boundaries intact, delivers strong emotional support, and converts risky utterances into humorous role‑play instead of unsafe escalation. 👹🎭
 
 
 
@@ -24,8 +24,7 @@ MischiefClub explores a third path:
 - EN: https://Yukyin.github.io/MischiefClub/mischief_club_branches_en.html
 - ZH: https://Yukyin.github.io/MischiefClub/mischief_club_branches_zh.html
 
-## Local (optional) 🖥️
-Open `demo/mischief_club_branches_en.html` or `demo/mischief_club_branches_zh.html` in your browser to edit scripts.
+> Open `demo/mischief_club_branches_en.html` or `demo/mischief_club_branches_zh.html` in your browser to edit scripts.
 
 ## Project status 🧪
 
@@ -39,8 +38,6 @@ Open `demo/mischief_club_branches_en.html` or `demo/mischief_club_branches_zh.ht
 
 - MischiefClub does not provide professional advice, diagnosis, or therapy. It only offers humorous role-play in its own style.
 - If you need professional help, please seek qualified support.
-
-
 
 
 
