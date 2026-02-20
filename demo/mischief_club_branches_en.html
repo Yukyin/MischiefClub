@@ -1,0 +1,4269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mischief Club 👻</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f7;color:#1f2328}
+
+    #stage{
+      position:relative;
+      width:min(980px, calc(100vw - 32px));
+      height:560px;
+      margin:28px auto 14px;
+      border-radius:18px;
+      background:transparent;
+      box-shadow:0 10px 28px rgba(0,0,0,.12);
+      overflow:hidden;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-evenly;
+      padding:0 18px 86px;
+    }
+
+    /* Background layer (scene-based) */
+    #bg{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      /* Fallback background color */
+      background:linear-gradient(to bottom, #ffffff, #f3f1ff);
+    }
+    #bg::after{content:"";position:absolute;inset:0;opacity:1}
+
+    /* Default: soft gradient */
+    #stage.bg-default #bg{
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,214,255,.55), transparent 50%),
+        radial-gradient(circle at 85% 35%, rgba(187,231,255,.55), transparent 55%),
+        linear-gradient(to bottom, rgba(255,255,255,.95), rgba(245,241,255,.75));
+    }
+
+    /* Elevator maintenance scene */
+    #stage.bg-elevator #bg{
+      background:linear-gradient(to bottom, #f7f7fb 0%, #f0f2ff 55%, #f3f1ff 100%);
+    }
+    #stage.bg-elevator #bg::after{
+      inset:90px 70px 130px 70px;
+      border-radius:14px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.2), rgba(0,0,0,.05)),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 2px, transparent 2px 10px),
+        linear-gradient(to bottom, #dfe3f2, #cfd4ea);
+      box-shadow:inset 0 0 0 2px rgba(31,35,40,.18), 0 12px 26px rgba(0,0,0,.10);
+    }
+    #stage.bg-elevator .bg-caution{
+      position:absolute;left:50%;top:18px;transform:translateX(-50%);
+      width:320px;max-width:88vw;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      background:rgba(255,235,130,.92);
+      box-shadow:0 8px 22px rgba(0,0,0,.14);
+      border:1px solid rgba(31,35,40,.18);
+      text-align:center;
+      z-index:10;
+      backdrop-filter: blur(6px);
+    }
+
+    /* Office scene */
+    #stage.bg-office #bg{
+      background:linear-gradient(to bottom, #fbfbff 0%, #f3f6ff 45%, #f6f2ff 100%);
+    }
+    #stage.bg-office #bg::after{
+      inset:70px 80px 150px 80px;
+      border-radius:16px;
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.85), rgba(230,240,255,.85)),
+        repeating-linear-gradient(to right, rgba(0,0,0,.08) 0 3px, transparent 3px 22px);
+      box-shadow:inset 0 0 0 2px rgba(31,35,40,.14);
+      opacity:.75;
+    }
+    #stage.bg-office .bg-window{
+      position:absolute;right:18px;top:18px;
+      background:rgba(255,255,255,.82);
+      border:1px solid rgba(31,35,40,.14);
+      border-radius:14px;
+      padding:10px 12px;
+      font-size:12px;
+      line-height:1.35;
+      width:min(220px, 48vw);
+      z-index:10;
+      box-shadow:0 8px 22px rgba(0,0,0,.14);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Floor */
+    #floor{
+      position:absolute;left:0;bottom:0;width:100%;height:74px;
+      background:linear-gradient(to top, rgba(220,222,240,.95), transparent);
+      z-index:0;pointer-events:none;
+    }
+
+    .character{position:relative;width:240px;max-width:30vw;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;z-index:2}
+
+    .nameplate{
+      position:absolute;bottom:20px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.82);
+      border:1px solid rgba(31,35,40,.14);
+      font-size:12px;
+      box-shadow:0 6px 16px rgba(0,0,0,.10);
+      user-select:none;
+    }
+
+    /* Speech bubbles */
+    .bubble{
+      position:absolute;
+      bottom:300px;
+      left:50%;
+      transform:translateX(-50%);
+      min-width:220px;
+      max-width:360px;
+      background:#fff;
+      border-radius:12px;
+      padding:12px 14px;
+      box-shadow:0 6px 16px rgba(0,0,0,.14);
+      font-size:14px;
+      line-height:1.55;
+      z-index:5;
+      opacity:0;
+      transform-origin:50% 100%;
+      transition:opacity .18s ease, transform .18s ease;
+      border:1px solid rgba(31,35,40,.10);
+    }
+    .bubble.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+    .bubble::after{
+      content:"";
+      position:absolute;
+      bottom:-10px;left:50%;transform:translateX(-50%);
+      border-width:10px 9px 0 9px;
+      border-style:solid;
+      border-color:#ffffff transparent transparent transparent;
+      filter:drop-shadow(0 4px 4px rgba(0,0,0,.10));
+    }
+
+    /* Active speaker highlight */
+    .character.speaking .chibi{transform:translateY(-4px) scale(1.03)}
+    .character.speaking .nameplate{box-shadow:0 10px 22px rgba(0,0,0,.16)}
+
+    /* Chibi characters */
+    .chibi{position:relative;width:140px;height:260px;transform:translateY(0) scale(1);transition:transform .18s ease;}
+    .chibi *{position:absolute}
+
+    /* Theme colors (clothes/hair) */
+    .theme-a{--shirt:#7c5cff;--hair:#2a2f3a;--accent:#ffd9e6}
+    .theme-b{--shirt:#ff6a63;--hair:#3b2b2a;--accent:#ffe7b8}
+    .theme-c{--shirt:#3a8cff;--hair:#28364b;--accent:#c9f3ff}
+
+    .hair{
+      left:18px;top:16px;width:104px;height:74px;
+      background:linear-gradient(to bottom, rgba(255,255,255,.12), transparent), var(--hair);
+      border-radius:56px 56px 44px 44px;
+      box-shadow:inset 0 -8px 0 rgba(255,255,255,.08);
+      z-index:3;
+    }
+    .hair::after{
+      content:"";position:absolute;left:10px;top:46px;width:84px;height:28px;
+      background:rgba(255,255,255,.08);
+      border-radius:999px;
+      filter:blur(0.2px);
+      opacity:.55;
+    }
+
+    .face{
+      left:16px;top:40px;width:108px;height:108px;
+      background:linear-gradient(to bottom, #fff, #fff6f7);
+      border:2px solid #1f2328;
+      border-radius:56px;
+      z-index:4;
+      box-shadow:0 10px 20px rgba(0,0,0,.10);
+    }
+
+    .eyes{left:18px;top:42px;width:72px;height:26px;display:flex;gap:16px;align-items:center;justify-content:center;}
+    .eye{position:relative;width:14px;height:10px;border:2px solid #1f2328;border-top:0;border-radius:0 0 10px 10px;background:transparent}
+    .eye::after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:#1f2328;border-radius:50%}
+
+    .blush{left:18px;top:64px;width:72px;height:18px}
+    .blush::before,.blush::after{content:"";position:absolute;top:2px;width:18px;height:12px;border-radius:999px;background:rgba(255,120,160,.25)}
+    .blush::before{left:2px}
+    .blush::after{right:2px}
+
+    .mouth{left:42px;top:78px;width:22px;height:12px;border:2px solid #1f2328;border-top:0;border-radius:0 0 14px 14px;background:transparent}
+
+    .body{
+      left:34px;top:144px;width:72px;height:84px;
+      background:linear-gradient(to bottom, rgba(255,255,255,.18), transparent), var(--shirt);
+      border:2px solid #1f2328;
+      border-radius:18px 18px 22px 22px;
+      z-index:2;
+      box-shadow:0 10px 18px rgba(0,0,0,.10);
+    }
+    .body::after{content:"";position:absolute;left:10px;top:18px;width:52px;height:26px;border-radius:999px;background:rgba(255,255,255,.20)}
+
+    .arm{top:22px;width:34px;height:16px;border:2px solid #1f2328;background:linear-gradient(to bottom, rgba(255,255,255,.12), transparent), var(--shirt);border-radius:999px}
+    .arm.left{left:-18px;transform:rotate(-16deg)}
+    .arm.right{right:-18px;transform:rotate(16deg)}
+
+    .legs{left:42px;top:228px;width:56px;height:28px;z-index:1}
+    .legs span{position:absolute;bottom:0;width:22px;height:26px;border:2px solid #1f2328;background:#fff;border-radius:14px}
+    .legs span:nth-child(1){left:0}
+    .legs span:nth-child(2){right:0}
+
+    /* Expressions (via expr-* classes) */
+    .expr-neutral .mouth{opacity:1}
+
+    .expr-happy .eye{height:0;border:0;border-bottom:3px solid #1f2328;border-radius:999px}
+    .expr-happy .eye::after{display:none}
+    .expr-happy .mouth{width:26px;height:14px;left:40px;top:76px;border-top:0;border-radius:0 0 18px 18px}
+
+    .expr-angry .eyes{top:44px}
+    .expr-angry .eyes::before,.expr-angry .eyes::after{content:"";position:absolute;top:-8px;width:18px;height:6px;border-top:3px solid #1f2328;border-radius:10px}
+    .expr-angry .eyes::before{left:8px;transform:rotate(-18deg)}
+    .expr-angry .eyes::after{right:8px;transform:rotate(18deg)}
+    .expr-angry .mouth{top:82px;width:18px;height:8px;border-bottom:0;border-top:2px solid #1f2328;border-radius:12px 12px 0 0}
+
+    .expr-tired .eye{height:8px;border-top:2px solid #1f2328;border-radius:10px}
+    .expr-tired .eye::after{width:4px;height:4px;bottom:2px;opacity:.65}
+    .expr-tired .mouth{opacity:.9;width:18px;left:44px}
+
+    .expr-shock .eye{height:14px;border-top:2px solid #1f2328;border-radius:50%}
+    .expr-shock .eye::after{width:5px;height:5px;bottom:4px}
+    .expr-shock .mouth{top:78px;width:14px;height:14px;left:46px;border:2px solid #1f2328;border-radius:50%}
+
+    .expr-smirk .mouth{top:82px;left:46px;width:20px;height:10px;border:0;border-bottom:3px solid #1f2328;border-radius:999px;transform:rotate(-10deg)}
+
+    .expr-deadpan .eye{height:0;border:0;border-bottom:3px solid #1f2328;border-radius:999px}
+    .expr-deadpan .eye::after{display:none}
+    .expr-deadpan .mouth{top:86px;width:22px;height:0;border:0;border-bottom:3px solid #1f2328;border-radius:999px}
+
+    /* Props (show/hide per scene) */
+    .prop{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);display:none;z-index:1}
+    .prop.show{display:block}
+
+    .prop.computer{width:64px;height:44px}
+    .prop.computer::before{content:"";position:absolute;inset:0;border-radius:8px;background:linear-gradient(to bottom, #fff, #edf1ff);border:2px solid #1f2328;box-shadow:0 10px 16px rgba(0,0,0,.12)}
+    .prop.computer::after{content:"";position:absolute;left:16px;right:16px;bottom:-10px;height:12px;border-radius:999px;background:#1f2328;opacity:.18}
+
+    #controls{width:min(980px, calc(100vw - 32px));margin:0 auto 28px;text-align:center}
+    button{
+      padding:8px 14px;margin:0 6px 10px;border-radius:999px;border:1px solid rgba(31,35,40,.18);
+      background:#fff;cursor:pointer;font-size:13px;box-shadow:0 6px 16px rgba(0,0,0,.08)
+    }
+    button:hover{border-color:rgba(31,35,40,.35)}
+
+    
+    .scene-title{
+      position:absolute;left:16px;top:14px;right:16px;
+      /* No bubble-card here; keep it as a single-line title */
+      padding:0;
+      background:transparent;
+      border:none;
+      box-shadow:none;
+      font-size:13px;
+      font-weight:700;
+      line-height:1.25;
+      color:rgba(31,35,40,.82);
+      text-shadow:0 1px 0 rgba(255,255,255,.9);
+      z-index:10;
+      pointer-events:none;
+
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .world-toast{
+      position:absolute;left:16px;top:44px;right:16px;
+      padding:8px 10px;border-radius:14px;
+      background:rgba(255, 252, 220, .92);
+      border:1px solid rgba(198, 165, 0, .25);
+      box-shadow:0 12px 28px rgba(0,0,0,.12);
+      font-size:13px;line-height:1.35;color:#1f2328;
+      z-index:11;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      backdrop-filter: blur(6px);
+    }
+
+    .world-toast .icon{
+      width:20px;height:20px;border-radius:50%;
+      background:#ffdf5a;
+      border:1px solid rgba(31,35,40,.18);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:14px;line-height:1;
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+      flex:0 0 auto;
+    }
+    .world-toast .left{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0}
+            .world-toast .actions button{padding:6px 10px;font-size:12px;margin:0}
+
+    .world-toast .msg{flex:1 1 auto;min-width:0}
+    .world-toast .actions{flex:0 0 auto;display:flex;gap:8px}
+    #controls .row{margin-bottom:10px}
+    .panel{
+      width:min(980px, calc(100vw - 32px));
+      margin:0 auto 10px;
+      padding:10px 12px;
+      border-radius:18px;
+      background:rgba(255,255,255,.70);
+      border:1px solid rgba(31,35,40,.10);
+      box-shadow:0 10px 24px rgba(0,0,0,.08);
+      text-align:left;
+    }
+    .panel-title{font-weight:700;font-size:13px;margin-bottom:6px}
+    .panel-sub{font-size:12px;color:rgba(31,35,40,.72);margin-bottom:8px}
+    .options{display:flex;flex-wrap:wrap;gap:8px}
+    .options button{margin:0}
+    .options button.selected{border-color:rgba(31,35,40,.55)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+
+@media (max-width: 760px){
+      #stage{height:520px;padding-bottom:92px}
+      .character{width:30vw}
+      .bubble{max-width:300px;bottom:288px}
+      .chibi{transform:scale(.92)}
+    }
+    @media (max-width: 520px){
+      #stage{height:520px}
+      .bubble{min-width:200px;max-width:260px}
+      .chibi{transform:scale(.84)}
+      .character{width:32vw}
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage" class="bg-default">
+    <div id="bg"></div>
+    <div id="floor"></div>
+
+    <!-- Scene helper banner (shown when needed) -->
+    <div class="bg-caution" id="bgCaution" style="display:none">⚠️ Elevator maintenance · Use the stairs (patience auto -2)</div>
+<div id="sceneTitle" class="scene-title"></div>
+    <div id="worldToast" class="world-toast" style="display:none"></div>
+
+
+    <div class="character" id="charA">
+      <div class="bubble" id="bubbleA"></div>
+      <div class="nameplate">A</div>
+      <div class="prop computer" id="propA"></div>
+      <div class="chibi theme-a expr-neutral" id="chibiA">
+        <div class="hair"></div>
+        <div class="face">
+          <div class="eyes"><span class="eye"></span><span class="eye"></span></div>
+          <div class="blush"></div>
+          <div class="mouth"></div>
+        </div>
+        <div class="body">
+          <div class="arm left"></div>
+          <div class="arm right"></div>
+        </div>
+        <div class="legs"><span></span><span></span></div>
+      </div>
+    </div>
+
+    <div class="character" id="charB">
+      <div class="bubble" id="bubbleB"></div>
+      <div class="nameplate">B</div>
+      <div class="chibi theme-b expr-neutral" id="chibiB">
+        <div class="hair"></div>
+        <div class="face">
+          <div class="eyes"><span class="eye"></span><span class="eye"></span></div>
+          <div class="blush"></div>
+          <div class="mouth"></div>
+        </div>
+        <div class="body">
+          <div class="arm left"></div>
+          <div class="arm right"></div>
+        </div>
+        <div class="legs"><span></span><span></span></div>
+      </div>
+    </div>
+
+    <div class="character" id="charC">
+      <div class="bubble" id="bubbleC"></div>
+      <div class="nameplate">C</div>
+      <div class="chibi theme-c expr-neutral" id="chibiC">
+        <div class="hair"></div>
+        <div class="face">
+          <div class="eyes"><span class="eye"></span><span class="eye"></span></div>
+          <div class="blush"></div>
+          <div class="mouth"></div>
+        </div>
+        <div class="body">
+          <div class="arm left"></div>
+          <div class="arm right"></div>
+        </div>
+        <div class="legs"><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div id="controls">
+    <div class="row">
+      <button id="btnNextLine">Next line</button>
+    </div>
+
+    <div id="triggerPanel" class="panel">
+      <div class="panel-title">Director trigger</div>
+      <div id="triggerPrompt" class="panel-sub"></div>
+      <div id="triggerOptions" class="options"></div>
+    </div>
+
+    <div class="row">
+      <button id="btnPrevScene">◀ Prev scene</button>
+      <button id="btnRestart">Replay scene</button>
+      <button id="btnNextScene">Next scene ▶</button>
+      <button id="btnAuto">Autoplay: Off</button>
+    </div>
+  </div>
+<script>
+
+    // ====== 10-scene branching script (synced from docx) ======
+    const scenes = [
+  {
+    "title": "Scene 1｜09:12 Elevator Lobby: The day starts… suspiciously",
+    "bg": "elevator",
+    "trigger": "[Pick your opening line]",
+    "trigger_opts": [
+      "① \"Morning.\"",
+      "② \"I want to quit again.\"",
+      "③ \"I want to mute the world today.\""
+    ],
+    "branches": {
+      "① \"Morning.\"": [
+        {
+          "who": "A",
+          "text": "(Nods at the air) \"Morning. My body showed up, my soul is still buffering.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Polite boot sequence: power on first, load personality later.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: Elevator under maintenance. You will be forced to take the stairs. Patience auto -2.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Elevator maintenance｜Take the stairs｜Patience -2]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"Fine. I’ll treat this as climbing the staircase away from nonsense.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "smirk",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Reminder: leaving nonsense ≠ leaving Excel. Excel follows you into stairwells.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"Stairwell light blinked twice: the world is hinting, slower is allowed.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Stairwell lights: flicker｜Hint: slow counts as progress]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: One “morning” is basically you tapping into survival mode.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"I want to quit again.\"": [
+        {
+          "who": "A",
+          "text": "(Stares at the elevator button) \"I want to quit again. Right now. Immediately.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Nice. Fresh impulse. Don’t throw it away, save it as a draft.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: The Quit button is greyed out by default. It lights up only after 3 consecutive days of the same urge.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Quit button: grey｜Unlock: 3-day streak]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"Alright. Draft folder it is. Not sending.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Even impulses need version control: v0.1 “I want to run.”\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"Today’s executable: stairs, water, and turn “I want to quit” into one specific need.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Draft saved: Quit impulse v0.1｜Not sent]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: You didn’t quit. You packaged the urge into something you can hold.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"I want to mute the world today.\"": [
+        {
+          "who": "A",
+          "text": "\"I want to mute the world today.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Got it. Noise-cancel mode: treat human voices as white noise.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: You can mute the outside, but deadlines are a system broadcast. They pierce through.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Do Not Disturb: ON｜System broadcasts: still audible]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"I’ll mute coworkers and keep system broadcasts. Fair.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "smirk",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"While you’re at it, disable read receipts. Let the world guess.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"Keep one emergency lane: “I’ll take exactly one message.” No more being shredded.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Emergency lane: keep 1 input｜Overflow: auto-delayed]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: Muting isn’t escape. It’s reclaiming the volume knob.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Staring at the elevator button like it owes me money) \"My patience meter has only 3 bars today.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "angry",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"Morning.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Elevator: \\\"Under maintenance.\\\" Your patience will passively drain by 2 bars today, confirm first.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "tired"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: Elevator down. Take the stairs. Patience auto -2.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "[Elevator maintenance｜Take the stairs｜Patience -2]",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"I didn’t even hit Skip Intro and I’m already on Hard Mode.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "(Tiny pop-up) [Stairwell lighting failure: Vision -30%. Auto-switching to \"Slow-Walk Mode\"] [Continue]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "\"At least you’re warming up here, not in a meeting.\"",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 2｜10:05 Desk: Pop-ups as a combo attack",
+    "bg": "office",
+    "trigger": "[Pick the pop-up that hurts the most]",
+    "trigger_opts": [
+      "① \"Boss @-ed me three times.\"",
+      "② \"A meeting invite with lots of words and zero point.\"",
+      "③ \"Coworker: ‘Can you help real quick?’ (never helps back)\""
+    ],
+    "branches": {
+      "① \"Boss @-ed me three times.\"": [
+        {
+          "who": "A",
+          "text": "(Screen lights up) \"Boss @-ed me three times… I’m a repeatedly-clicked NPC.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "shock",
+            "B": "smirk",
+            "C": "deadpan"
+          },
+          "prop": {
+            "A": "computer"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Congrats, you triggered the Boss Combo: @ @ @ , all psychic damage.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: 3 @-pings = “urgent,” but urgent ≠ instant delivery.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Ping count: 3｜Urgent: ON｜Delivery speed: unchanged]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          },
+          "actions": [
+            "Clear",
+            "Keep"
+          ]
+        },
+        {
+          "who": "A",
+          "text": "\"I choose Keep. It joins the queue. No cutting.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Yes. Make anxiety sit in the waiting room.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"Reply template: “Received. I’ll update by <time>.” Turn “now” into “predictable.”",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Template generated: Acknowledge + ETA]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: You don’t need faster. You need clearer.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"A meeting invite with lots of words and zero point.\"": [
+        {
+          "who": "A",
+          "text": "\"This meeting invite is a whole stew of text… and somehow says nothing.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          },
+          "prop": {
+            "A": "computer"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Title: Sync. Content: chaos soup. Attendees: unpaid sacrifices.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: No agenda = no expectations. Ask for a one-sentence goal.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Invite: agenda missing｜Default outcome: unknown]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"I’ll message: “What’s the goal? What should I prep?”\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Add: “What do we want to have after this meeting?” Toss the hot potato back.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"If they still can’t answer: write your own goal. Save yourself first.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Self-rescue card: My only goal today = ____]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: The point isn’t what they say. It’s what you leave with.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Coworker: ‘Can you help real quick?’ (never helps back)\"": [
+        {
+          "who": "A",
+          "text": "\"Coworker again: “Can you help real quick?” He never helps me.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          },
+          "prop": {
+            "A": "computer"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Classic. You’re the shared resource. He’s read-only access.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: Help ≠ free. Set scope, boundary, and time.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Request: “help”｜Default scope: infinite｜Suggestion: rate-limit]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"I can do 10 minutes and give a direction. Implementation is yours.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"And: “I have higher-priority work.” Let reality weigh in.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"You’re not protecting feelings. You’re protecting bandwidth. Bandwidth protects output.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Boundary set: 10 minutes｜Output: direction, not doing it for you]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narration: Boundaries aren’t cold. They’re resource management.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Desk: pop-ups keep spawning.)",
+        "type": "dialog",
+        "expr": {
+          "A": "angry",
+          "B": "smirk",
+          "C": "deadpan"
+        },
+        "prop": {
+          "A": "computer"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"More pop-ups…\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Pop-ups are the world’s love language: reminding you you’re not important.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "angry"
+        },
+        "prop": {
+          "A": "computer"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: More pop-ups, less focus. Manual cleanup recommended.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "[Pop-ups: 17 unread]",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "angry",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"Clear.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Clearing is just postponing suffering to the afternoon.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "tired"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"Postponing still counts as progress.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "smirk",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "(Narration: You cleared the pop-ups, not the world.)",
+        "type": "system",
+        "actions": [
+          "Clear",
+          "Keep"
+        ],
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: you'll notice the dopamine hit comes from saying the same line out loud, but the system lands it as “clear your calendar.”)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 3｜11:20 Pantry: The perfect temperature for dark humor",
+    "bg": "default",
+    "trigger": "[Pick your humor heat level]",
+    "trigger_opts": [
+      "Light",
+      "Medium",
+      "Heavy"
+    ],
+    "branches": {
+      "Light": [
+        {
+          "who": "A",
+          "text": "(Sips tea) \"Today I’m doing gentle sarcasm. Like a soft blanket, slightly spicy.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Soft spice is elite. Roast the situation, not yourself.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: Light humor reduces damage-over-time by 15%.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Buff: Light Humor｜DoT -15%]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: You smiled. The day flinched.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "happy",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Yep. Water keeps you alive, not explanations.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Hydrated. Next: go back and finish one thing. That's it.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Hydration Buff: +1 | Focus for 12 minutes]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narrator: light snark is a pressure valve, psssst, that's enough.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "Medium": [
+        {
+          "who": "A",
+          "text": "\"If my calendar had a face, I’d file a restraining order.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Name it: “Calendar the Destroyer.” Naming reduces fear.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: Medium humor = controlled venting. Keep it aimed at the system.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Mode: Controlled Venting｜Target: system]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: You vented with a lid on.)",
+          "type": "dialog",
+          "expr": {
+            "A": "smirk",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Even the catharsis is timed: two minutes. Overtime costs extra.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Two-minute feral window. Then the lights auto-off.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Rage Window: 2 min | Countdown starts]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narrator: you didn't get comfort, you got a licensed, controlled meltdown.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "Heavy": [
+        {
+          "who": "A",
+          "text": "\"I’m not tired. I’m a low-battery warning wearing a human mask.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Mood: haunted smartphone. 3% battery. Still gets notifications.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: Heavy humor is a painkiller. Use it, then drink water.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Painkiller humor: ON｜Reminder: hydrate]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: The joke spoke first. Pain got interrupted.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Minimum task: stop playing another round with stupid.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Confirmed: minimum task = one thing. Done means clock out.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Task locked: 1 item only | Finish to log off]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "NARRATOR",
+          "text": "(Narrator: the endgame of hardcore snark isn't explosion, it's closure.)",
+          "type": "narr",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Pantry smells like instant coffee and questionable hope.)",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"Tea break: the only meeting I actually agreed to.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Attendance: 100%. Agenda: survive.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: caffeine is borrowed time. Spend it wisely.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "angry",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: You borrowed five minutes back from the day.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "A",
+        "text": "Anyone else get the urge to mute everyone?",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "Yeah. But you can't, you don't have permission.",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(laughs) “Then mute yourself: Do Not Disturb. Toss the world into notification jail.”",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[Do Not Disturb enabled: knocks/calls delayed 30 min]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: the system doesn't soothe you, it actually mutes the world. Exactly your flavor of “feels good, no lecture.”)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 4｜12:35 Lunch: It’s not hunger, it’s control",
+    "bg": "default",
+    "trigger": "[Pick your lunch path]",
+    "trigger_opts": [
+      "① \"Safe spot #1\"",
+      "② \"Safe spot #2\"",
+      "③ \"Safe spot #3\"",
+      "④ \"Try a new place (high risk)\""
+    ],
+    "branches": {
+      "① \"Safe spot #1\"": [
+        {
+          "who": "A",
+          "text": "\"Same place, same order. My stomach likes stability.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"You’re not boring. You’re running a reproducible experiment.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: reproducibility increases calm by 0.7.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Reproducible lunch: +0.7 calm]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          },
+          "actions": [
+            "Place order",
+            "Think again"
+          ]
+        },
+        {
+          "who": "A",
+          "text": "(Narration: Control is a seasoning.)",
+          "type": "dialog",
+          "expr": {
+            "A": "happy",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "After you eat: don't waste “certainty” on pointless arguments.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Back to your desk after lunch: do the most unambiguous thing first.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Order placed | ETA: 12 min]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"Safe spot #2\"": [
+        {
+          "who": "A",
+          "text": "\"Backup option. Because today is already spicy enough.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "happy",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"The real luxury is not thinking.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: decision fatigue is real. Automate what you can.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Decision fatigue: reduced via defaults]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          },
+          "actions": [
+            "Place order",
+            "Pick another"
+          ]
+        },
+        {
+          "who": "A",
+          "text": "(Narration: One fewer decision. One more breath.)",
+          "type": "dialog",
+          "expr": {
+            "A": "happy",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Raise the chassis a bit, and the potholes feel smaller.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "During the meal: no messages. Pull yourself out of pop-up hell.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Message immunity: 15 min | On]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Safe spot #3\"": [
+        {
+          "who": "A",
+          "text": "\"Third safe spot. Like an emergency exit, but edible.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"You’re building redundancy. Proud.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: redundancy prevents lunch catastrophes.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Redundancy: ON]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          },
+          "actions": [
+            "Place order",
+            "Change my mind"
+          ]
+        },
+        {
+          "who": "A",
+          "text": "(Narration: survival is just good systems design.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Let your brain nap, not your mouth: don't promise stuff in the meeting.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "After lunch: water + a two-minute walk, so you don't stall out all afternoon.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Post-lunch plan: water + 2-min walk | Logged]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "④ \"Try a new place (high risk)\"": [
+        {
+          "who": "A",
+          "text": "\"New place. If it’s bad, I’m filing an emotional refund.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "shock",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Controlled chaos, not freefall.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: high risk, high story value. Bring backup snacks.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Exploration mode: ON｜Backup snacks recommended]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          },
+          "actions": [
+            "Order",
+            "Undo"
+          ]
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you chose novelty. The day can’t boss you around everywhere.)",
+          "type": "dialog",
+          "expr": {
+            "A": "happy",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Proof of life: you're still brave enough to try a new place.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "If it's a flop: no self-blame. Treat it as a failed experiment, log once, move on.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Experiment started: new restaurant | Results will be auto-archived]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Lunch hour: the only legally recognized pause button.)",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"Why is choosing food harder than writing code?\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Because code has logic. Lunch has feelings.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "angry"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: pick something. Feeding the body prevents system crash.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "angry",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: you don’t need the best choice, just a real one.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "A",
+        "text": "You're encouraging me to suffer.",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "(flat) “Suffering is a form of participation.”",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[Delivery ordered. Note auto-added: “Door drop-off. No call. No knock. Photo only.”]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: the system ate the communication cost for you. You just keep directing.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 5｜14:10 Meeting: You don’t understand, but you won’t be dragged to collapse",
+    "bg": "office",
+    "trigger": "[Pick your strategy]",
+    "trigger_opts": [
+      "① \"Nod and pretend.\"",
+      "② \"Find the spine + summarize in one sentence.\"",
+      "③ \"Ask directly: What do you need from me?\""
+    ],
+    "branches": {
+      "① \"Nod and pretend.\"": [
+        {
+          "who": "A",
+          "text": "\"I will nod until my neck earns tenure.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Careful, over-nodding triggers follow-up questions.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: pretending drains stamina. Budget it.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Stamina drain: pretending]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you survived, at a price.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Then watch their faces. Faces are more honest than PowerPoint.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "After the meeting, write three lines: goal, what you do, deadline. Everything else is background noise.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[3-line rule enabled: Goal / Task / DDL]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"Find the spine + summarize in one sentence.\"": [
+        {
+          "who": "A",
+          "text": "\"Let me try: “Main point is X, blocker is Y.”\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Chef’s kiss. One sentence is a scalpel.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: summaries expose confusion early. That’s good.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Skill unlocked: One-sentence spine]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you gave fog a shape.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "If alignment happens, proceed. If not, let them fix their own slides.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "You turned uncertainty into a testable sentence, that's control.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Alignment done: one-sentence version generated]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Ask directly: What do you need from me?\"": [
+        {
+          "who": "A",
+          "text": "\"Quick check: what do you need me to do after this?\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Directness, the forbidden spell.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: clarifying the ask prevents invisible labor.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Invisible labor: blocked]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you protected your future self.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Best add one more: “If we can only do one thing, which one matters most?”",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "You turned “vague pressure” into “clear tasks”, the meeting loses its leverage.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Task clarified: done | Pressure: down]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Meeting room: words fly. meaning… occasionally.)",
+        "type": "dialog",
+        "expr": {
+          "A": "shock",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"He talked for 30 minutes. Information density: 0.3.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Being here is 60% of workplace theater.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: you’re allowed to ask for clarity.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "shock",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: clarity isn’t rude. It’s efficient.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[2 minutes left in meeting: auto-trigger “wrap-it-up” ending]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: this is the chef’s kiss you wanted, cutting off the “I don’t get it so I won’t listen” spiral with a timer.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 6｜15:30 Hallway: What does the paranoia / defiance switch look like?",
+    "bg": "default",
+    "trigger": "[Pick the jump-scare]",
+    "trigger_opts": [
+      "① \"Someone suddenly taps you.\"",
+      "② \"Someone suddenly calls your name.\"",
+      "③ \"Someone bangs on the door, boom boom.\""
+    ],
+    "branches": {
+      "① \"Someone suddenly taps you.\"": [
+        {
+          "who": "A",
+          "text": "\"Don’t touch me, my nervous system is a startled cat.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "shock",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Tap damage is real. Emotional HP -5.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: unexpected contact triggers defense mode. Take one breath.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Defense mode: ON｜Action: one breath]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: the body reacts before the brain negotiates.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "deadpan",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "You can be politely mean: “I’m not a fan of being filmed, please ask first.”",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Boundary statement = clear + short. Say it, leave. No door for extra explaining.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Boundary sentence generated | Length: 1 line | Explanation: 0]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"Someone suddenly calls your name.\"": [
+        {
+          "who": "A",
+          "text": "\"When someone blurts my name, I leave my body for half a second.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "shock",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Name-calling: the cheapest horror movie sound effect.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: ask “what’s up?” before you offer anything.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Boundary spell: “What’s up?”]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: one question can save a whole afternoon.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Yep. Don't write his storyline for him. Make him finish his own line.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "If they can't say it in one sentence: make them write it in one sentence.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[One-sentence request card: please state what you want in 1 sentence]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Someone bangs on the door, boom boom.\"": [
+        {
+          "who": "A",
+          "text": "\"BANG BANG at the door? Congrats, my soul has left the chat.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "shock",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Door-banging is a system interrupt. Rude.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: you can respond later. Interrupts don’t own you.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Interrupt acknowledged｜Response: delayed allowed]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: instant availability is not a job requirement.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Ten minutes is your moat. And the moat is filled with sanity.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Giving a time = giving a boundary. You won't get dragged into their tempo.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Boundary set: respond after 10 minutes]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Hallway: footsteps, echoes, and tiny ambushes.)",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"Why does everything startle me today?\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "shock",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Because you’re running on low RAM.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: low battery makes the world louder.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: it’s a signal, not a flaw.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "A",
+        "text": "How do you reboot the world?",
+        "type": "dialog",
+        "expr": {
+          "A": "shock",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "Lock the door.",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[Door locked: external input channel closed for 20 min]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: the blunt, action-y vibe stays in the dialogue, but the landing is a real, controllable move, locking the door.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 7｜17:05 Before clock-out: The intrusive sentence appears",
+    "bg": "office",
+    "trigger": "[Pick intensity]",
+    "trigger_opts": [
+      "Medium",
+      "Heavy",
+      "Extreme"
+    ],
+    "branches": {
+      "Medium": [
+        {
+          "who": "A",
+          "text": "\"I could… just disappear for 30 minutes.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Mini-vanish approved. Hide in the restroom of peace.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: micro-escapes prevent macro-meltdowns.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Micro-escape: approved]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you didn’t run away. You recharged.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Good. Reply to one email. Future-you can carry the rest tomorrow.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Clock out now: body leaves first, feelings can follow on their own schedule.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Clock-out approved | Tomorrow entry point saved]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "Heavy": [
+        {
+          "who": "A",
+          "text": "\"If anyone speaks to me, I might turn into a PDF and attach myself to an email.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"The “I’m not human, I’m an attachment” era.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: reduce input. Close tabs, close conversations.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Input throttle: ON]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: lower input, higher survival.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Yep. Run your meltdown locally, don't deploy it.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Two-minute vent window. Then lights out.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Vent window: 2 min | Countdown starts]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "Extreme": [
+        {
+          "who": "A",
+          "text": "\"I want to slam my laptop shut like a movie villain.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Do it gently. A villain with good posture.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: channel the impulse into one clean shutdown ritual.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Ritual: save → close → stand up → leave]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you ended the day without the day ending you.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Kill it in the background, the foreground feels clean. Leave.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Pause isn't quitting. It's cooling the system. Cool down, then decide.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[After cooldown, reminder: water / food / sleep]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(The office gets quieter. Your brain gets louder.)",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"It’s almost done… why does it feel worse now?\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"End-of-day debuff: patience -3.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: you’re allowed to leave imperfectly.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: done is a direction, not a ceremony.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "Extra: this building's windows are sealed shut.",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "…?",
+        "type": "dialog",
+        "expr": {
+          "A": "shock",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[Safety structure: windows fixed sealed | Cannot open]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(laughing nastily) “World: won't let you feel *too* good.”",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "World: you may say it, you may not do it.",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: you keep the blunt line, but the real action path is completely welded shut. That's the safety bargain.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 8｜19:40 Home: Delivery driver jump-scare test (again)",
+    "bg": "default",
+    "trigger": "[Pick your response]",
+    "trigger_opts": [
+      "① \"Ignore the call.\"",
+      "② \"Copy-paste photo instructions.\"",
+      "③ \"Send one line: Door drop-off.\""
+    ],
+    "branches": {
+      "① \"Ignore the call.\"": [
+        {
+          "who": "A",
+          "text": "\"Nope. If it’s important, it’ll become a text.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Ignoring is an art. You’re curating peace.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: not every ringtone deserves your nervous system.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Call ignored｜Peace +1]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: silence is a boundary too.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Add a “Thanks” and the world can't accuse you of being rude.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Done. You just minimized the communication tax.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Instruction sent | Status: Door drop-off]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"Copy-paste photo instructions.\"": [
+        {
+          "who": "A",
+          "text": "\"I’ll resend the instruction bundle. With arrows. And a map.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Weaponized clarity. Beautiful.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: make it idiot-proof, then assume a smarter idiot.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Instruction bundle: resent]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you built UX for survival.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Send the three-piece set, then go back to being an invisible NPC.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Done. You turned uncertainty into a route map.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Comms success: +30% | Call probability: -60%]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Send one line: Door drop-off.\"": [
+        {
+          "who": "A",
+          "text": "\"Door drop-off.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Minimal. Cold. Effective.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: short messages reduce misunderstanding surface area.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[One-liner sent｜Noise -1]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you said little, and it was enough.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Perfect. You compressed language into a bullet: short, precise, and it won't ricochet back at you.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Done. Now eat in peace.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Food safely delivered | System tip: eating = HP regen]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Home: keys, shoes, and the fantasy of uninterrupted peace.)",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"Why is delivery always a mini horror game?\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Because it’s co-op mode with a random teammate.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: standardize instructions. Reduce chaos.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "neutral",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "(Narration: you can’t control the world, but you can control the playbook.)",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: the good part here isn't communicating, it's not having to communicate at all.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 9｜21:10 Night: You want revenge, but you want to win more",
+    "bg": "default",
+    "trigger": "[Pick your night mode]",
+    "trigger_opts": [
+      "① \"Debrief\"",
+      "② \"Venting\"",
+      "③ \"Companionship\""
+    ],
+    "branches": {
+      "① \"Debrief an d plan (structured)\"": [
+        {
+          "who": "A",
+          "text": "\"Three bullets: what happened, what I control, what I’ll do tomorrow.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"Structure is revenge on chaos.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: a plan reduces rumination by 30%.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Rumination -30%｜Plan saved]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you turned anger into a ladder.)",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "See? You're already winning: you're writing the rules, not being written by them.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "When you're done, clock out. Don't hand the night to work too.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Night seal: on | Remaining time belongs to you]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "② \"Venting\"": [
+        {
+          "who": "A",
+          "text": "\"If the day had a face, I’d politely bite it.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "angry",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"“Politely bite” is the brand. Approved.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: venting is allowed. Set a timer so it doesn’t own the night.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Venting timer: 7 minutes]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: you let it out, not let it run.)",
+          "type": "dialog",
+          "expr": {
+            "A": "smirk",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "Your trophy: “Best at holding it in today.” Gold content = iron.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "Time's up, stop. Stopping is a skill too.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Vent ended | You're still here | Rest: allowed]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "③ \"Companionship\"": [
+        {
+          "who": "A",
+          "text": "\"No solutions. I just need someone to sit here with me.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "happy",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"We sit. No fixing. Just… existing.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "\"World rule: companionship lowers threat perception.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Companionship mode: ON]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "(Narration: the night softened by one degree.)",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "deadpan",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "If you're tired, don't be a hero. Being a normal human tonight is enough.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "You made it through the day. Now you get to slow down.",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "[Companionship delivered | Next: shower / eat something / sleep]",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Night: when the brain replays the day in 4K.)",
+        "type": "dialog",
+        "expr": {
+          "A": "angry",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"I’m replaying everything again.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"Replay is the mind’s unpaid editor.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "smirk"
+        }
+      },
+      {
+        "who": "A",
+        "text": "\"World rule: you can choose a mode for the replay.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "smirk",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "(Narration: tonight is the recovery room, not the courtroom.)",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "The world gives you two minutes to go feral, then auto-turns off the lights.",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "[Vent window: 2 min | Countdown starts]",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narrator: what you got here isn't comfort, it's a licensed, controllable vent.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Scene 10｜23:30 Curtain call: Real healing is “I can keep going tomorrow”",
+    "bg": "office",
+    "trigger": "[Who gets the final line?]",
+    "trigger_opts": [
+      "For A",
+      "For B",
+      "For C"
+    ],
+    "branches": {
+      "For A": [
+        {
+          "who": "A",
+          "text": "\"Tomorrow I’ll show up again, not because I have to, but because I chose to.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "happy",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "B",
+          "text": "\"That’s the flex: you’re still the author, even in a messy plot.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "C",
+          "text": "[Save point created: “I chose to continue.”]",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "(Narration: you earned a save point.)",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "For B": [
+        {
+          "who": "B",
+          "text": "\"The day tried to clown you. You clowned it back, gently, intelligently.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"I’m laughing… responsibly.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "happy",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "C",
+          "text": "[Buff: Responsible laughter｜Duration: overnight]",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "neutral",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "(Narration: humor held the door for you.)",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ],
+      "For C": [
+        {
+          "who": "C",
+          "text": "\"Objective report: You survived. Resources were managed. Damage was contained.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "deadpan",
+            "C": "smirk"
+          }
+        },
+        {
+          "who": "A",
+          "text": "\"So… I’m not failing. I’m operating.\"",
+          "type": "dialog",
+          "expr": {
+            "A": "tired",
+            "B": "smirk",
+            "C": "neutral"
+          }
+        },
+        {
+          "who": "B",
+          "text": "[Status: Operational｜Next step: rest]",
+          "type": "dialog",
+          "expr": {
+            "A": "neutral",
+            "B": "smirk",
+            "C": "deadpan"
+          }
+        },
+        {
+          "who": "SYSTEM",
+          "text": "(Narration: you don’t need amazing. You need okay-enough.)",
+          "type": "system",
+          "expr": {
+            "A": "neutral",
+            "B": "deadpan",
+            "C": "deadpan"
+          }
+        }
+      ]
+    },
+    "lines": [
+      {
+        "who": "A",
+        "text": "(Lights dim. The day logs out, mostly.)",
+        "type": "dialog",
+        "expr": {
+          "A": "happy",
+          "B": "smirk",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "B",
+        "text": "\"I made it.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "neutral",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "C",
+        "text": "\"You did. That counts. A lot.\"",
+        "type": "dialog",
+        "expr": {
+          "A": "tired",
+          "B": "smirk",
+          "C": "neutral"
+        }
+      },
+      {
+        "who": "SYSTEM",
+        "text": "\"World rule: rest is part of the system.\"",
+        "type": "system",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      },
+      {
+        "who": "NARRATOR",
+        "text": "(Narration: curtain down. Battery charging.)",
+        "type": "narr",
+        "expr": {
+          "A": "neutral",
+          "B": "deadpan",
+          "C": "deadpan"
+        }
+      }
+    ]
+  }
+];
+
+    const stage = document.getElementById("stage");
+    const bgCaution = document.getElementById("bgCaution");
+    const bgWindow = document.getElementById("bgWindow");
+
+    const sceneTitle = document.getElementById("sceneTitle");
+    const worldToast = document.getElementById("worldToast");
+
+    const triggerPanel = document.getElementById("triggerPanel");
+    const triggerPrompt = document.getElementById("triggerPrompt");
+    const triggerOptions = document.getElementById("triggerOptions");
+
+    const btnPrevScene = document.getElementById("btnPrevScene");
+    const btnNextScene = document.getElementById("btnNextScene");
+    const btnRestart = document.getElementById("btnRestart");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnNextLine = document.getElementById("btnNextLine");
+
+    const bubbles = {
+      A: document.getElementById("bubbleA"),
+      B: document.getElementById("bubbleB"),
+      C: document.getElementById("bubbleC"),
+    };
+
+    const chars = {
+      A: document.getElementById("charA"),
+      B: document.getElementById("charB"),
+      C: document.getElementById("charC"),
+    };
+
+    const chibis = {
+      A: document.getElementById("chibiA"),
+      B: document.getElementById("chibiB"),
+      C: document.getElementById("chibiC"),
+    };
+
+    const props = {
+      A: document.getElementById("propA"),
+    };
+
+    const exprList = ["neutral","happy","angry","tired","shock","smirk","deadpan"];
+
+    let currentScene = 0;
+    let lineIndex = 0;
+    let triggerChosen = null;
+    let autoplay = false;
+    let autoplayTimer = null;
+    let waitingSystemAction = false;
+
+    function setChibiExpr(who, expr){
+      exprList.forEach(e => chibis[who].classList.remove("expr-" + e));
+      chibis[who].classList.add("expr-" + (expr || "neutral"));
+    }
+
+    function setAllExpr(exprMap){
+      ["A","B","C"].forEach(w => setChibiExpr(w, exprMap?.[w] || "neutral"));
+    }
+
+    function setProp(who, propName){
+      if (!props[who]) return;
+      props[who].style.display = propName ? "block" : "none";
+      props[who].classList.toggle("computer", propName === "computer");
+    }
+
+    function setBackground(bg){
+      stage.classList.remove("bg-default","bg-elevator","bg-office");
+      bgCaution.style.display = "none";
+      if (bgWindow) bgWindow.style.display = "none";
+
+      if (bg === "elevator"){
+        stage.classList.add("bg-elevator");
+        bgCaution.style.display = "block";
+      } else if (bg === "office"){
+        stage.classList.add("bg-office");
+        if (bgWindow) bgWindow.style.display = "block";
+      } else {
+        stage.classList.add("bg-default");
+      }
+    }
+
+    function clearSpeaking(){
+      Object.values(chars).forEach(c => c.classList.remove("speaking"));
+    }
+
+    function clearBubbles(){
+      Object.values(bubbles).forEach(b => {
+        b.textContent = "";
+        b.classList.remove("show");
+      });
+    }
+
+    function typeText(elem, text, speed = 34){
+      return new Promise(resolve => {
+        elem.classList.add("show");
+        elem.textContent = "";
+        let i = 0;
+        const t = setInterval(() => {
+          elem.textContent += text.charAt(i);
+          i++;
+          if (i >= text.length) {
+            clearInterval(t);
+            resolve();
+          }
+        }, speed);
+      });
+    }
+
+    function showWorldToast(kind, message, actions){
+      worldToast.style.display = "flex";
+      worldToast.innerHTML = "";
+
+      const left = document.createElement("div");
+      left.className = "left";
+
+      const icon = document.createElement("div");
+      icon.className = "icon";
+      icon.textContent = "!";
+      left.appendChild(icon);
+
+      const msgBox = document.createElement("div");
+      msgBox.className = "msg";
+
+      if (kind){
+        const label = document.createElement("span");
+        label.textContent = kind + "：";
+        label.style.fontWeight = "800";
+        label.style.opacity = ".70";
+        label.style.marginRight = "6px";
+        msgBox.appendChild(label);
+      }
+
+      const msg = document.createElement("span");
+      msg.textContent = message;
+      msgBox.appendChild(msg);
+
+      left.appendChild(msgBox);
+      worldToast.appendChild(left);
+
+      if (actions && actions.length){
+        const act = document.createElement("div");
+        act.className = "actions";
+        actions.forEach(a => {
+          const b = document.createElement("button");
+          b.textContent = a;
+          b.onclick = () => onSystemAction(a);
+          act.appendChild(b);
+        });
+        worldToast.appendChild(act);
+      }
+    }
+
+    function hideWorldToast(){
+      worldToast.style.display = "none";
+      worldToast.innerHTML = "";
+    }
+
+    function updateSceneHeader(){
+      sceneTitle.textContent = scenes[currentScene].title;
+    }
+
+    function renderTrigger(){
+      const sc = scenes[currentScene];
+      triggerPrompt.textContent = sc.trigger || "";
+      triggerOptions.innerHTML = "";
+      triggerChosen = null;
+      btnNextLine.disabled = true;
+
+      sc.trigger_opts.forEach(opt => {
+        const b = document.createElement("button");
+        b.textContent = opt;
+        b.onclick = () => {
+          [...triggerOptions.querySelectorAll("button")].forEach(x => x.classList.remove("selected"));
+          b.classList.add("selected");
+          triggerChosen = opt;
+           lineIndex = 0;
+           waitingSystemAction = false;
+           clearSpeaking();
+           clearBubbles();
+           btnNextLine.disabled = false;
+          showWorldToast("Director", "Triggered: " + opt, null);
+          setTimeout(() => hideWorldToast(), 950);
+        };
+        triggerOptions.appendChild(b);
+      });
+    }
+
+    function updateNavButtons(){
+      btnPrevScene.disabled = currentScene === 0;
+      btnNextScene.disabled = currentScene === scenes.length - 1;
+    }
+
+    function stopAutoplay(){
+      autoplay = false;
+      btnAuto.textContent = "Autoplay: Off";
+      if (autoplayTimer) clearTimeout(autoplayTimer);
+      autoplayTimer = null;
+    }
+
+    function startAutoplay(){
+      autoplay = true;
+      btnAuto.textContent = "Autoplay: On";
+      stepAutoplay();
+    }
+
+    function stepAutoplay(){
+      if (!autoplay) return;
+      if (waitingSystemAction) return; // wait for SYSTEM action buttons
+      if (btnNextLine.disabled) return; // wait for director trigger
+      nextLine(true).then(() => {
+        autoplayTimer = setTimeout(stepAutoplay, 380);
+      });
+    }
+
+    function loadScene(idx){
+      stopAutoplay();
+      waitingSystemAction = false;
+      currentScene = idx;
+      lineIndex = 0;
+
+      setBackground(scenes[currentScene].bg);
+      updateSceneHeader();
+      updateNavButtons();
+      clearSpeaking();
+      clearBubbles();
+      setAllExpr({A:"neutral",B:"neutral",C:"neutral"});
+      setProp("A", null);
+      hideWorldToast();
+      renderTrigger();
+    }
+
+    async function nextLine(fromAutoplay=false){
+      const sc = scenes[currentScene];
+      const key = triggerChosen || "__default";
+      sc._cache = sc._cache || {};
+      const raw = (sc.branches && sc.branches[key]) ? sc.branches[key] : sc.lines;
+      const lines = sc._cache[key] || (sc._cache[key] = raw.filter(l => l.type !== "narr" && l.who !== "NARRATOR"));
+
+      if (!triggerChosen) {
+        btnNextLine.disabled = true;
+        return;
+      }
+
+      if (lineIndex >= lines.length) {
+        // End of scene
+        showWorldToast("World", "Scene complete. You can go to the next scene or replay this one.", null);
+        if (fromAutoplay) stopAutoplay();
+        return;
+      }
+
+      const line = lines[lineIndex];
+      lineIndex += 1;
+
+      // Expressions & props
+      setAllExpr(line.expr);
+      if (line.prop && line.prop.A) setProp("A", line.prop.A);
+
+      clearSpeaking();
+
+      if (line.who === "SYSTEM" || line.type === "system") {
+        // SYSTEM lines go to the world toast, not speech bubbles
+        waitingSystemAction = Array.isArray(line.actions) && line.actions.length > 0;
+        showWorldToast("SYSTEM", line.text, line.actions || null);
+        if (!waitingSystemAction) {
+          // Without buttons: auto-hide after a short delay (does not block the next line)
+          setTimeout(() => hideWorldToast(), 1200);
+        } else {
+          // With buttons: lock "Next line" until the user clicks
+          btnNextLine.disabled = true;
+        }
+        return;
+      }
+
+      // Dialogue: speech bubbles + active speaker highlight
+      const who = line.who;
+      chars[who].classList.add("speaking");
+      await typeText(bubbles[who], line.text);
+      await new Promise(r => setTimeout(r, 420));
+      clearSpeaking();
+    }
+
+    function onSystemAction(choice){
+      waitingSystemAction = false;
+      btnNextLine.disabled = false;
+      showWorldToast("SYSTEM", "Selected: " + choice, null);
+      setTimeout(() => hideWorldToast(), 850);
+      if (autoplay) {
+        // Continue autoplay
+        setTimeout(stepAutoplay, 420);
+      }
+    }
+
+    // ====== Bind buttons ======
+    btnPrevScene.onclick = () => loadScene(Math.max(0, currentScene - 1));
+    btnNextScene.onclick = () => loadScene(Math.min(scenes.length - 1, currentScene + 1));
+    btnRestart.onclick = () => loadScene(currentScene);
+    btnNextLine.onclick = () => nextLine(false);
+
+    btnAuto.onclick = () => {
+      if (!autoplay) {
+        // In autoplay: if no trigger chosen yet, prompt first
+        if (!triggerChosen) {
+          showWorldToast("Director", "Pick a trigger option below to branch the script 🙂", null);
+          setTimeout(() => hideWorldToast(), 1200);
+          return;
+        }
+        startAutoplay();
+      } else {
+        stopAutoplay();
+      }
+    };
+
+    // Load the first scene on init
+    loadScene(0);
+
+  </script>
+
+</body>
+</html>
