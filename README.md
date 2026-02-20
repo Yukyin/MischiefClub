@@ -21,10 +21,10 @@ MischiefClub explores a third path:
 
 
 ## Live demo 🌐
-- EN: https://Yukyin.github.io/MischiefClub/mischief_club_branches_en.html
-- ZH: https://Yukyin.github.io/MischiefClub/mischief_club_branches_zh.html
+- EN: https://Yukyin.github.io/MischiefClub/demo/mischiefclub_en.html
+- ZH: https://Yukyin.github.io/MischiefClub/demo/mischiefclub_zh.html
 
-> Open `demo/mischief_club_branches_en.html` or `demo/mischief_club_branches_zh.html` in your browser to edit scripts.
+> Open `demo/mischiefclub_en.html` or `demo/mischiefclub_zh.html` in your browser to edit scripts.
 
 ## Project status 🧪
 
