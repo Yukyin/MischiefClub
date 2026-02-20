@@ -21,8 +21,8 @@ MischiefClub explores a third path:
 
 
 ## Live demo 🌐
-- EN: https://Yukyin.github.io/MischiefClub/demo/mischiefclub_en.html
-- ZH: https://Yukyin.github.io/MischiefClub/demo/mischiefclub_zh.html
+- EN: [Enter the stage 👹](https://Yukyin.github.io/MischiefClub/demo/mischiefclub_en.html)
+- 中文: [进入小剧场 👹](https://Yukyin.github.io/MischiefClub/demo/mischiefclub_zh.html)
 
 > Open `demo/mischiefclub_en.html` or `demo/mischiefclub_zh.html` in your browser to edit scripts.
 
